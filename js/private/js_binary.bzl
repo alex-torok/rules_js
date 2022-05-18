@@ -190,7 +190,7 @@ def _bash_launcher(ctx, entry_point_path, args):
 
     return launcher
 
-def _create_launcher(ctx):
+def _create_launcher(ctx, args):
     is_windows = ctx.target_platform_has_constraint(ctx.attr._windows_constraint[platform_common.ConstraintValueInfo])
 
     if is_windows and not ctx.attr.enable_runfiles:
@@ -213,7 +213,7 @@ def _create_launcher(ctx):
 
     output_data_files = copy_files_to_bin_actions(ctx, ctx.files.data, is_windows = is_windows)
 
-    bash_launcher = _bash_launcher(ctx, entry_point_path, ctx.attr.args)
+    bash_launcher = _bash_launcher(ctx, entry_point_path, args)
     launcher = create_windows_native_launcher_script(ctx, ctx.outputs.launcher_sh) if is_windows else bash_launcher
 
     all_files = output_data_files + ctx.files._runfiles_lib + [output_entry_point] + ctx.toolchains["@rules_nodejs//nodejs:toolchain_type"].nodeinfo.tool_files
@@ -231,7 +231,7 @@ def _create_launcher(ctx):
     )
 
 def _impl(ctx):
-    launcher = _create_launcher(ctx)
+    launcher = _create_launcher(ctx, ctx.attr.args)
     return DefaultInfo(
         executable = launcher.exe,
         runfiles = launcher.runfiles,
@@ -239,6 +239,7 @@ def _impl(ctx):
 
 js_binary_lib = struct(
     attrs = _ATTRS,
+    create_launcher = _create_launcher,
     implementation = _impl,
     toolchains = [
         # TODO: on Windows this toolchain is never referenced
