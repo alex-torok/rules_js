@@ -17,6 +17,7 @@ typescript_bin.tsc(
         "-p",
         "tsconfig.json",
     ],
+    log_level = "debug",
 )
 
 js_test(
